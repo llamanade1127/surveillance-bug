@@ -1,4 +1,5 @@
 import axios from "axios";
+import test from "node:test";
 import puppeteer from "puppeteer";
 //Twilo imports
 // const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -50,13 +51,13 @@ const ELEMENT_WAIT_TIMEOUT_PL = 2147483646;
 const ELEMENT_MAX_TIMEOUT = 10000;
 
 //Path to the register button
-const PATH_TO_REGISTER_BUTTON = 'html body section#scheduler-app div main.css-0 div.container.css-ivn467-contentCss-App div div.css-1er3bwj-headerCss span.page-controls span.hide-for-print button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
+const PATH_TO_REGISTER_BUTTON = '#scheduler-app > div > main > div > div > div.css-1er3bwj-headerCss > span > span > button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
 
 //Path to the continue button on iFrame
-const PATH_TO_CONTINUE_BUTTON = 'html body.modal-open div div.fade.css-1expkbz-modalCss.in.modal div.modal-dialog div.modal-content div.modal-footer button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
+const PATH_TO_CONTINUE_BUTTON = 'body > div > div.fade.css-1expkbz-modalCss.in.modal > div > div > div.modal-footer > button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
 
 //Path to the table containing all the failed classes data
-const PATH_TO_REGISTERED_CLASSES_TABLE = 'html body.modal-open div div.fade.in.modal div.modal-dialog div.modal-content div.modal-body div.css-82jllk-statusCss div.css-7h3hm7-padCss div.css-808kkp-listCss';
+const PATH_TO_REGISTERED_CLASSES_TABLE = 'body > div > div.fade.in.modal > div > div > div.modal-body > div.css-82jllk-statusCss > div > div';
 
 //Number of attempts that we have made
 let attempts: number = 0;
@@ -192,6 +193,7 @@ async function waitForElement(startPage: string, elemPath: string, callback: Fun
 async function main() {
     debug("Checking inputs");
     await checkInputs();
+    //await testWait();
     debug("loading puppeteer");
     await loadPuppet();
     debug("Waiting for page");
@@ -202,5 +204,11 @@ async function main() {
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max)
 enum DEBUG_LEVEL {LOG = "+", WARNING = "?", ERROR = "!", FAIL = "X" }
 
+async function testWait() {
+    await loadPuppet();
+    page.goto('https://github.com/llamanade1127');
+    await page.waitForSelector('#repo-content-pjax-container > div > div > div.Layout.Layout--flowRow-until-md.Layout--sidebarPosition-end.Layout--sidebarPosition-flowRow-end > div.Layout-main > div.file-navigation.mb-3.d-flex.flex-items-start > span > get-repo > details > summary', {timeout:ELEMENT_WAIT_TIMEOUT_PL });
+    debug('found!');
+}
 
 main();

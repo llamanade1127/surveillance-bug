@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -47,11 +38,11 @@ const ELEMENT_WAIT_TIMEOUT_PL = 2147483646;
 //Number of ms to wait for element to appear 
 const ELEMENT_MAX_TIMEOUT = 10000;
 //Path to the register button
-const PATH_TO_REGISTER_BUTTON = 'html body section#scheduler-app div main.css-0 div.container.css-ivn467-contentCss-App div div.css-1er3bwj-headerCss span.page-controls span.hide-for-print button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
+const PATH_TO_REGISTER_BUTTON = '#scheduler-app > div > main > div > div > div.css-1er3bwj-headerCss > span > span > button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
 //Path to the continue button on iFrame
-const PATH_TO_CONTINUE_BUTTON = 'html body.modal-open div div.fade.css-1expkbz-modalCss.in.modal div.modal-dialog div.modal-content div.modal-footer button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
+const PATH_TO_CONTINUE_BUTTON = 'body > div > div.fade.css-1expkbz-modalCss.in.modal > div > div > div.modal-footer > button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
 //Path to the table containing all the failed classes data
-const PATH_TO_REGISTERED_CLASSES_TABLE = 'html body.modal-open div div.fade.in.modal div.modal-dialog div.modal-content div.modal-body div.css-82jllk-statusCss div.css-7h3hm7-padCss div.css-808kkp-listCss';
+const PATH_TO_REGISTERED_CLASSES_TABLE = 'body > div > div.fade.in.modal > div > div > div.modal-body > div.css-82jllk-statusCss > div > div';
 //Number of attempts that we have made
 let attempts = 0;
 let browser;
@@ -72,38 +63,36 @@ function wait(date, fn) {
     }, ADVANCE_TIME_MODE ? clamp(date.getTime() - Date.now() - 1, 1, Number.MAX_SAFE_INTEGER) : TIME_BETWEEN_DATE_ASSERTIONS);
 }
 //Attempts to add a class
-function attempt() {
-    return __awaiter(this, void 0, void 0, function* () {
-        debug("Attempting to access classes");
-        try {
-            if (page == null || browser == null) {
-                debug("Page or Browser are null!", DEBUG_LEVEL.FAIL);
-                shutdown(-1);
-            }
-            //Wait for Register button
-            page.waitForSelector(PATH_TO_REGISTER_BUTTON, { timeout: ELEMENT_MAX_TIMEOUT });
-            //Click Register button
-            page.click(PATH_TO_REGISTER_BUTTON);
-            //Wait for iFrame
-            page.waitForSelector(PATH_TO_CONTINUE_BUTTON, { timeout: ELEMENT_MAX_TIMEOUT });
-            //Click continue.
-            page.focus(PATH_TO_CONTINUE_BUTTON);
-            page.click(PATH_TO_CONTINUE_BUTTON);
-            //Load iFrame to see any errors.
-            page.waitForSelector(PATH_TO_REGISTERED_CLASSES_TABLE);
-            //Take a screenshot
-            takeScreenshotAndSave(yield page.screenshot());
-            //Report Errors and success
-            parseClasses(page);
+async function attempt() {
+    debug("Attempting to access classes");
+    try {
+        if (page == null || browser == null) {
+            debug("Page or Browser are null!", DEBUG_LEVEL.FAIL);
+            shutdown(-1);
         }
-        catch (e) {
-            debug(`Error attempting to add class. Error: ${e}`, DEBUG_LEVEL.ERROR);
-            text(IS_PROD ? DEV_NUM : CLIENT_NUM, `Error attempting to add class. Error: ${e}`);
-            debug(`${attempts <= RETRY_AMOUNTS ? `Attemting to access classes again...` : `Reached maximum amount of attempts...`}`, DEBUG_LEVEL.ERROR);
-            ++attempts;
-            attempts <= RETRY_AMOUNTS ? attempt() : shutdown(-1);
-        }
-    });
+        //Wait for Register button
+        page.waitForSelector(PATH_TO_REGISTER_BUTTON, { timeout: ELEMENT_MAX_TIMEOUT });
+        //Click Register button
+        page.click(PATH_TO_REGISTER_BUTTON);
+        //Wait for iFrame
+        page.waitForSelector(PATH_TO_CONTINUE_BUTTON, { timeout: ELEMENT_MAX_TIMEOUT });
+        //Click continue.
+        page.focus(PATH_TO_CONTINUE_BUTTON);
+        page.click(PATH_TO_CONTINUE_BUTTON);
+        //Load iFrame to see any errors.
+        page.waitForSelector(PATH_TO_REGISTERED_CLASSES_TABLE);
+        //Take a screenshot
+        takeScreenshotAndSave(await page.screenshot());
+        //Report Errors and success
+        parseClasses(page);
+    }
+    catch (e) {
+        debug(`Error attempting to add class. Error: ${e}`, DEBUG_LEVEL.ERROR);
+        text(IS_PROD ? DEV_NUM : CLIENT_NUM, `Error attempting to add class. Error: ${e}`);
+        debug(`${attempts <= RETRY_AMOUNTS ? `Attemting to access classes again...` : `Reached maximum amount of attempts...`}`, DEBUG_LEVEL.ERROR);
+        ++attempts;
+        attempts <= RETRY_AMOUNTS ? attempt() : shutdown(-1);
+    }
 }
 function takeScreenshotAndSave(buf) {
 }
@@ -121,61 +110,54 @@ function debug(log, dbl = DEBUG_LEVEL.LOG, sendMessage = false) {
         text(IS_PROD ? CLIENT_NUM : DEV_NUM, log);
     }
 }
-function checkInputs() {
-    return __awaiter(this, void 0, void 0, function* () {
-        //Need to check the following:
-        /**
-        * EXECUTE_DATE
-        * TWILIO
-        *
-        */
-        try {
-            if (EXECUTE_DATE.getTime() <= Date.now()) {
-                debug("EXECUTE_DATE is a date before or exacty Date.now()", DEBUG_LEVEL.ERROR);
-                shutdown(-1);
-            }
-        }
-        catch (e) {
-            debug("Error checking the date of EXECUTE_DATE. Most likley a invalid inputed date", DEBUG_LEVEL.FAIL);
+async function checkInputs() {
+    //Need to check the following:
+    /**
+    * EXECUTE_DATE
+    * TWILIO
+    *
+    */
+    try {
+        if (EXECUTE_DATE.getTime() <= Date.now()) {
+            debug("EXECUTE_DATE is a date before or exacty Date.now()", DEBUG_LEVEL.ERROR);
             shutdown(-1);
         }
-        try {
-            var test = yield puppeteer_1.default.launch();
-            test.close();
-        }
-        catch (e) {
-            debug("Error starting puppeteer! Error: " + e);
-            shutdown(-1);
-        }
-        debug("Passed input test");
-    });
+    }
+    catch (e) {
+        debug("Error checking the date of EXECUTE_DATE. Most likley a invalid inputed date", DEBUG_LEVEL.FAIL);
+        shutdown(-1);
+    }
+    try {
+        var test = await puppeteer_1.default.launch();
+        test.close();
+    }
+    catch (e) {
+        debug("Error starting puppeteer! Error: " + e);
+        shutdown(-1);
+    }
+    debug("Passed input test");
 }
-function loadPuppet() {
-    return __awaiter(this, void 0, void 0, function* () {
-        browser = yield puppeteer_1.default.launch({ headless: false });
-        page = yield browser.newPage();
-    });
+async function loadPuppet() {
+    browser = await puppeteer_1.default.launch({ headless: false });
+    page = await browser.newPage();
 }
-function waitForElement(startPage, elemPath, callback) {
-    return __awaiter(this, void 0, void 0, function* () {
-        page.goto(startPage);
-        yield page.waitForSelector(elemPath, { timeout: ELEMENT_WAIT_TIMEOUT_PL });
-        if ((yield page.select(elemPath)) == null) {
-            debug("Could not find element within the ELEMENT_WAIT_TIMEOUT time frame!", DEBUG_LEVEL.FAIL);
-            shutdown(-1);
-        }
-        callback();
-    });
+async function waitForElement(startPage, elemPath, callback) {
+    page.goto(startPage);
+    await page.waitForSelector(elemPath, { timeout: ELEMENT_WAIT_TIMEOUT_PL });
+    if (await page.select(elemPath) == null) {
+        debug("Could not find element within the ELEMENT_WAIT_TIMEOUT time frame!", DEBUG_LEVEL.FAIL);
+        shutdown(-1);
+    }
+    callback();
 }
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        debug("Checking inputs");
-        yield checkInputs();
-        debug("loading puppeteer");
-        yield loadPuppet();
-        debug("Waiting for page");
-        waitForElement(URL, PATH_TO_REGISTER_BUTTON, () => wait(EXECUTE_DATE, attempt));
-    });
+async function main() {
+    debug("Checking inputs");
+    await checkInputs();
+    //await testWait();
+    debug("loading puppeteer");
+    await loadPuppet();
+    debug("Waiting for page");
+    waitForElement(URL, PATH_TO_REGISTER_BUTTON, () => wait(EXECUTE_DATE, attempt));
 }
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 var DEBUG_LEVEL;
@@ -185,4 +167,10 @@ var DEBUG_LEVEL;
     DEBUG_LEVEL["ERROR"] = "!";
     DEBUG_LEVEL["FAIL"] = "X";
 })(DEBUG_LEVEL || (DEBUG_LEVEL = {}));
+async function testWait() {
+    await loadPuppet();
+    page.goto('https://github.com/llamanade1127');
+    await page.waitForSelector('#repo-content-pjax-container > div > div > div.Layout.Layout--flowRow-until-md.Layout--sidebarPosition-end.Layout--sidebarPosition-flowRow-end > div.Layout-main > div.file-navigation.mb-3.d-flex.flex-items-start > span > get-repo > details > summary', { timeout: ELEMENT_WAIT_TIMEOUT_PL });
+    debug('found!');
+}
 main();
