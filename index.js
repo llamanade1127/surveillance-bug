@@ -37,6 +37,7 @@ const URL = "https://erau.collegescheduler.com/terms/Daytona-Prescott%202023%20S
 const ELEMENT_WAIT_TIMEOUT_PL = 2147483646;
 //Number of ms to wait for element to appear 
 const ELEMENT_MAX_TIMEOUT = 10000;
+const TEST_PATH = "#scheduler-app > div > main > div > div > div.css-1er3bwj-headerCss > span";
 //Path to the register button
 const PATH_TO_REGISTER_BUTTON = '#scheduler-app > div > main > div > div > div.css-1er3bwj-headerCss > span > span > button.css-6pmogs-hoverStyles-hoverStyles-defaultStyle-wideStyle';
 //Path to the continue button on iFrame
@@ -143,7 +144,8 @@ async function loadPuppet() {
 }
 async function waitForElement(startPage, elemPath, callback) {
     page.goto(startPage);
-    await page.waitForSelector(elemPath, { timeout: ELEMENT_WAIT_TIMEOUT_PL });
+    page.focus(elemPath);
+    await page.waitForSelector(TEST_PATH, { timeout: ELEMENT_WAIT_TIMEOUT_PL });
     if (await page.select(elemPath) == null) {
         debug("Could not find element within the ELEMENT_WAIT_TIMEOUT time frame!", DEBUG_LEVEL.FAIL);
         shutdown(-1);
