@@ -1,0 +1,22 @@
+{
+  "name": "bens-thinggy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/puppeteer": "^7.0.4",
+    "axios": "^1.1.3",
+    "puppeteer": "^19.2.2",
+    "twilio": "^3.83.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.9"
+  }
+}
